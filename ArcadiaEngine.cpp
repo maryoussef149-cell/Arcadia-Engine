@@ -26,23 +26,72 @@ const long long MOD = 1e9 + 7;
 // --- 1. PlayerTable (Double Hashing) ---
 
 class ConcretePlayerTable : public PlayerTable {
-private:
-    // TODO: Define your data structures here
-    // Hint: You'll need a hash table with double hashing collision resolution
+    private:
+    struct Entry {
+        int id;
+        string name;
+        bool occupied = false;
+    };
 
-public:
+    vector<Entry> table;
+    int count = 0;
+
+    public:
     ConcretePlayerTable() {
-        // TODO: Initialize your hash table
+        table.resize(101); //fixed size of 101
     }
+    
+    void insert(int playerID, string name) {
+        if (count >= 101) {
+            cout << "Table is Full" << endl;
+            return;
+        } // if the table is full 
 
-    void insert(int playerID, string name) override {
-        // TODO: Implement double hashing insert
-        // Remember to handle collisions using h1(key) + i * h2(key)
-    }
+        //the hashes
+        int h1 = playerID % 101;
+        int h2 = 97 - (playerID % 97); //to prevent the infinite loop
 
-    string search(int playerID) override {
-        // TODO: Implement double hashing search
-        // Return "" if player not found
+        int idx = h1;
+        int i = 0;
+
+        //searching
+        while (table[idx].occupied) {
+            i++;
+            idx = (h1 + (i * h2)) % 101;
+        }
+
+        //inserting
+        table[idx].id = playerID;
+        table[idx].name = name;
+        table[idx].occupied = true;
+        count++;
+    };
+
+    string search(int playerID) {
+        //hashes
+        int h1 = playerID % 101;
+        int h2 = 97 - (playerID % 97);
+        
+        int idx = h1;
+        int i = 0;
+
+        
+        while (i < 101) {
+            //if no player
+            if (!table[idx].occupied) {
+                return "";
+            }
+
+            //same id = found
+            if (table[idx].id == playerID) {
+                return table[idx].name;
+            }
+            //else jumb and repeat*-9+--
+            +
+            i++;
+            idx = (h1 + (i * h2)) % 101;
+        }
+
         return "";
     }
 };
@@ -256,13 +305,40 @@ string WorldNavigator::sumMinDistancesBinary(int n, vector<vector<int>>& roads) 
 // PART D: SERVER KERNEL (Greedy)
 // =========================================================
 
+
 int ServerKernel::minIntervals(vector<char>& tasks, int n) {
-    // TODO: Implement task scheduler with cooling time
-    // Same task must wait 'n' intervals before running again
-    // Return minimum total intervals needed (including idle time)
-    // Hint: Use greedy approach with frequency counting
-    return 0;
+    int counts[26] = {0}; //letters
+    int max_repeats = 0;
+
+
+    for (char t : tasks) {
+    
+        int index = t - 'A'; // a trick to convert the letter to numbers .. A = 65
+        
+        //adding 1 for every occurence of this letter in counts
+        counts[index]++;
+        
+        // setting the max
+        if (counts[index] > max_repeats) {
+            max_repeats = counts[index];
+        }
+    }
+
+    int tasks_with_max_repeats = 0;
+
+    for (int c : counts) {
+        if (c == max_repeats) {
+            tasks_with_max_repeats++;
+        }
+    }
+
+    int number_of_full_rows = max_repeats - 1; //max repeat govern what would the grid look like - the last one
+    int size_of_row = n + 1; // the max repeat + waiting time
+
+    int result = (number_of_full_rows * size_of_row) + tasks_with_max_repeats;
+    return max(result, (int)tasks.size()); //you have to wait for the tasks if no repeating
 }
+
 
 // =========================================================
 // FACTORY FUNCTIONS (Required for Testing)
