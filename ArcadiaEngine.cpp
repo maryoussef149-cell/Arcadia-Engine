@@ -98,28 +98,154 @@ class ConcretePlayerTable : public PlayerTable {
 
 // --- 2. Leaderboard (Skip List) ---
 
+const int MAX_LEVEL = 16; // Maximum level for the Skip List
+const float P = 0.5;      // Probability factor for random level generation
+
 class ConcreteLeaderboard : public Leaderboard {
 private:
-    // TODO: Define your skip list node structure and necessary variables
-    // Hint: You'll need nodes with multiple forward pointers
+    struct PlayerNode {
+        int playerID;
+        int score;
+       vector<PlayerNode*> forward;
+
+        PlayerNode(int id, int scr, int level) : playerID(id), score(scr) {
+            forward.resize(level + 1, nullptr);
+        }
+    };
+
+    PlayerNode* head;
+    int current_level;
+
+    // Helper to generate a random level for a new node
+    int randomLevel() {
+        int level = 0;
+        while (rand() / (RAND_MAX + 1.0) < P && level < MAX_LEVEL) {
+            level++;
+        }
+        return level;
+    }
+
+    // helper function for insertion/search
+    bool shouldBePlacedBefore(int scoreA, int idA, const PlayerNode* nodeB) const {
+        if (scoreA != nodeB->score) {
+            return scoreA > nodeB->score; //Descending for the score
+        }
+        return idA < nodeB->playerID; //Ascending for the id
+    }
+
+    // helper function for deletion Returns true if nodeA comes before nodeB in the list
+    bool comesBefore(const PlayerNode* nodeA, const PlayerNode* nodeB) const {
+        if (nodeA->score != nodeB->score) {
+            return nodeA->score > nodeB->score;
+        }
+        return nodeA->playerID < nodeB->playerID;
+    }
 
 public:
-    ConcreteLeaderboard() {
-        // TODO: Initialize your skip list
+    // clean up
+    ~ConcreteLeaderboard() {
+        PlayerNode* current = head;
+        PlayerNode* next_node = nullptr;
+        while (current != nullptr) {
+            next_node = current->forward[0];
+            delete current;
+            current = next_node;
+        }
+    }
+
+    ConcreteLeaderboard() : current_level(0) {
+        head = new PlayerNode(-1, -1, MAX_LEVEL);
     }
 
     void addScore(int playerID, int score) override {
-        // TODO: Implement skip list insertion
-        // Remember to maintain descending order by score
+        vector<PlayerNode*> update(MAX_LEVEL + 1);
+        PlayerNode* current = head;
+
+        // 1. Find the update array (predecessors) in O(log n)
+        for (int i = current_level; i >= 0; i--) {
+            // Traverse forward as long as the next node should be placed before the new key
+            while (current->forward[i] != nullptr &&
+                   shouldBePlacedBefore(score, playerID, current->forward[i])) {
+                current = current->forward[i];
+            }
+            update[i] = current;
+        }
+
+
+        int new_level = randomLevel();
+
+        // Update max level
+        if (new_level > current_level) {
+            for (int i = current_level + 1; i <= new_level; i++) {
+                update[i] = head;
+            }
+            current_level = new_level;
+        }
+
+
+        PlayerNode* new_node = new PlayerNode(playerID, score, new_level);
+
+        for (int i = 0; i <= new_level; i++) {
+            new_node->forward[i] = update[i]->forward[i];
+            update[i]->forward[i] = new_node;
+        }
     }
 
     void removePlayer(int playerID) override {
-        // TODO: Implement skip list deletion
+        PlayerNode* node_to_delete = nullptr;
+
+        PlayerNode* runner = head->forward[0];
+        while (runner != nullptr) {
+            if (runner->playerID == playerID) {
+                node_to_delete = runner;
+                break;
+            }
+            runner = runner->forward[0];
+        }
+
+        // if the node isn't found
+        if (node_to_delete == nullptr) {
+            return;
+        }
+
+
+        PlayerNode* current = head;
+
+        // Traverse from the highest level down
+        for (int i = current_level; i >= 0; i--) {
+
+            // search for the node comes before node_to_delete   time : O(log n)
+            while (current->forward[i] != nullptr &&
+                   comesBefore(current->forward[i], node_to_delete)) {
+                current = current->forward[i];
+            }
+
+            // if current->forward[i] is the node we found update it to the forward of the node_to_delete
+            if (current->forward[i] == node_to_delete) {
+                current->forward[i] = node_to_delete->forward[i];
+            }
+        }
+
+        // Clean up list level
+        while (current_level > 0 && head->forward[current_level] == nullptr) {
+            current_level--;
+        }
+
+        delete node_to_delete;
     }
 
     vector<int> getTopN(int n) override {
-        // TODO: Return top N player IDs in descending score order
-        return {};
+        std::vector<int> top_n_players;
+        // Start at the first node
+        PlayerNode* current = head->forward[0];
+
+        // store the players until size n
+        while (current != nullptr && top_n_players.size() < n) {
+            top_n_players.push_back(current->playerID);
+            current = current->forward[0];
+        }
+
+        return top_n_players;
     }
 };
 
