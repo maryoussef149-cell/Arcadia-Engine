@@ -54,6 +54,15 @@ public:
         int idx = h1;
         int i = 0;
 
+        // Search for existing player with same ID
+        while (i < 101 && table[idx].occupied) {
+            if (table[idx].id == playerID) {
+                table[idx].name = name;
+                return;
+            }
+            i++;
+            idx = (h1 + (i * h2)) % 101;
+        }
         // searching
         while (table[idx].occupied) {
             i++;
@@ -652,6 +661,8 @@ long long InventorySystem::countStringPossibilities(string s) {
 // =========================================================
 
 bool WorldNavigator::pathExists(int n, vector<vector<int>> &edges, int source, int dest) {
+
+    if(n==0) return false;
     vector<vector<int>> adjacent(n);   // adjacency list
     for (auto &e: edges) {
         adjacent[e[0]].push_back(e[1]);   // add neighbor (bidirectional)
@@ -708,8 +719,7 @@ struct DSU {
     }
 };
 
-long long
-WorldNavigator::minBribeCost(int n, int m, long long goldRate, long long silverRate, vector<vector<int>> &roadData) {
+long long WorldNavigator::minBribeCost(int n, int m, long long goldRate, long long silverRate, vector<vector<int>> &roadData) {
 
     vector<pair<long long, pair<int, int>>> edges; // store edges as (cost, (city1, city2))
 
@@ -750,9 +760,13 @@ string WorldNavigator::sumMinDistancesBinary(int n, vector<vector<int>> &roads) 
     for (int i = 0; i < n; i++)
         dist[i][i] = 0;
 
-    // Set direct road distances
-    for (auto &r: roads) {
-        dist[r[0]][r[1]] = min(dist[r[0]][r[1]], (long long) r[2]); // handle multiple roads
+    // Set undirected road distances
+    for (auto &r : roads) {
+        int u = r[0], v = r[1];
+        long long w = r[2];
+
+        dist[u][v] = min(dist[u][v], w);
+        dist[v][u] = min(dist[v][u], w);
     }
 
     // compute all pairs shortest paths
