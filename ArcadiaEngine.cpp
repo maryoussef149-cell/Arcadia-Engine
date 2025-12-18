@@ -155,9 +155,13 @@ public:
     }
 
     void addScore(int playerID, int score) override {
+        // Ensure the player doesn't already exist
+        removePlayer(playerID);
+
+
         vector<PlayerNode *> update(MAX_LEVEL + 1);
         PlayerNode *current = head;
-
+        
         // Move forward as long as the next node's score is bigger than the new one
         for (int i = current_level; i >= 0; i--) {
             while (current->forward[i] != nullptr &&
