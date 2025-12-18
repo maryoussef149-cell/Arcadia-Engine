@@ -9,7 +9,7 @@
 #include <string>
 #include <iomanip>
 #include <functional>
-#include "ArcadiaEngine.h" 
+#include "ArcadiaEngine.h"
 
 using namespace std;
 
@@ -18,22 +18,22 @@ using namespace std;
 // ==========================================
 // These link to the functions at the bottom of your .cpp file
 extern "C" {
-    PlayerTable* createPlayerTable();
-    Leaderboard* createLeaderboard();
-    AuctionTree* createAuctionTree();
+PlayerTable* createPlayerTable();
+Leaderboard* createLeaderboard();
+AuctionTree* createAuctionTree();
 }
 
 // ==========================================
 // TEST UTILITIES
 // ==========================================
 class StudentTestRunner {
-	int count = 0;
+    int count = 0;
     int passed = 0;
     int failed = 0;
 
 public:
     void runTest(string testName, bool condition) {
-		count++;
+        count++;
         cout << "TEST: " << left << setw(50) << testName;
         if (condition) {
             cout << "[ PASS ]";
@@ -49,7 +49,7 @@ public:
         cout << "\n==========================================" << endl;
         cout << "SUMMARY: Passed: " << passed << " | Failed: " << failed << endl;
         cout << "==========================================" << endl;
-		cout << "TOTAL TESTS: " << count << endl;
+        cout << "TOTAL TESTS: " << count << endl;
         if (failed == 0) {
             cout << "Great job! All basic scenarios passed." << endl;
             cout << "Now make sure to handle edge cases (empty inputs, collisions, etc.)!" << endl;
@@ -97,9 +97,9 @@ void test_PartA_DataStructures() {
         vector<int> top = board->getTopN(2);
         // We expect {10, 20} NOT {20, 10}
         if (top.size() < 2) return false;
-        return (top[0] == 10 && top[1] == 20); 
+        return (top[0] == 10 && top[1] == 20);
     }());
-    
+
     delete board;
 
     // 3. AuctionTree (Red-Black Tree)
@@ -160,9 +160,9 @@ void test_PartC_Navigator() {
     // MST should pick 10 and 5. Total 15.
     runner.runTest("MinBribeCost: Triangle Graph -> Cost 15", [&]() {
         vector<vector<int>> roads = {
-            {0, 1, 10, 0}, 
-            {1, 2, 5, 0}, 
-            {0, 2, 20, 0}
+                {0, 1, 10, 0},
+                {1, 2, 5, 0},
+                {0, 2, 20, 0}
         };
         // n=3, m=3, goldRate=1, silverRate=1
         return WorldNavigator::minBribeCost(3, 3, 1, 1, roads) == 15;
@@ -172,8 +172,8 @@ void test_PartC_Navigator() {
     // PDF Example: 0-1 (1), 1-2 (2). Distances: 1, 2, 3. Sum=6 -> "110"
     runner.runTest("BinarySum: Line Graph -> '110'", [&]() {
         vector<vector<int>> roads = {
-            {0, 1, 1},
-            {1, 2, 2}
+                {0, 1, 1},
+                {1, 2, 2}
         };
         return WorldNavigator::sumMinDistancesBinary(3, roads) == "110";
     }());

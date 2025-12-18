@@ -96,7 +96,7 @@ public:
 
 // --- 2. Leaderboard (Skip List) ---
 
-const int MAX_LEVEL = 16; // Maximum level for the Skip List
+const int MAX_LEVEL = 32; // Maximum level for the Skip List
 const float P = 0.5;      // Probability factor for random level generation
 
 class ConcreteLeaderboard : public Leaderboard {
